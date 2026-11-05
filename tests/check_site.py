@@ -15,6 +15,19 @@ LINKEDIN = "https://www.linkedin.com/in/kenneth-wu-6857a0396/"
 EMAIL = "mailto:wu1410@mcmaster.ca"
 SECTIONS = ["projects", "about", "how-i-built-this", "contact"]
 MIN_CONTRAST = 4.5  # WCAG AA minimum for normal-size text
+EXPECTED_IMAGES = 5
+MAX_IMAGE_BYTES = 250_000
+MAX_TOTAL_IMAGE_BYTES = 1_000_000
+
+# (name, GitHub link, facts the card must state), in the order they must appear.
+PROJECTS = [
+    ("Larpslator", "https://github.com/kennethwu08/larpslator",
+     ["LarpHacks", "team of 4", "ESP32", "100%", "93%"]),
+    ("Walk In My World", "https://github.com/bernardkim0805-cmyk/Disability-Awareness-Simulator-3D-",
+     ["team of 3", "7 experience modes", "Accessibility Lab", "20+", "WHO"]),
+    ("Physics Visualizer", "https://github.com/kennethwu08/Physics-Visualizer",
+     ["8", "Gemini", "PyInstaller"]),
+]
 
 
 class PageScanner(HTMLParser):
@@ -29,7 +42,10 @@ class PageScanner(HTMLParser):
         self.has_viewport = False
         self.stylesheets = []
         self.sections_with_h2 = []
+        self.images = []
+        self.cards = []  # one dict per <article>: name, links, text, images, tags
         self._section = None  # id of the <section> we are currently inside
+        self._card = None  # the <article> we are currently inside
         self._in = None  # the tag whose text we are currently collecting
 
     def handle_starttag(self, tag, attrs):
@@ -46,7 +62,19 @@ class PageScanner(HTMLParser):
             self._section = a.get("id")
         elif tag == "h2" and self._section:
             self.sections_with_h2.append(self._section)
-        if tag in ("title", "h1"):
+        elif tag == "img":
+            self.images.append(a)
+        elif tag == "article":
+            self._card = {"name": "", "links": [], "text": "", "images": 0, "tags": 0}
+            self.cards.append(self._card)
+        if self._card is not None:
+            if tag == "a" and "href" in a:
+                self._card["links"].append(a["href"])
+            elif tag == "img":
+                self._card["images"] += 1
+            elif tag == "li":
+                self._card["tags"] += 1
+        if tag in ("title", "h1", "h3"):
             self._in = tag
             if tag == "h1":
                 self.h1_texts.append("")
@@ -56,8 +84,14 @@ class PageScanner(HTMLParser):
             self._in = None
         if tag == "section":
             self._section = None
+        if tag == "article":
+            self._card = None
 
     def handle_data(self, data):
+        if self._card is not None:
+            self._card["text"] += data
+            if self._in == "h3":
+                self._card["name"] += data
         if self._in == "title":
             self.title += data
         elif self._in == "h1":
@@ -106,7 +140,48 @@ def readable_on_background(css, name):
     return bool(background and colour) and contrast(colour, background) >= MIN_CONTRAST
 
 
-def run_checks(html, css):
+def image_size(source, src):
+    """Size of an image in bytes, or 0 if it can't be found."""
+    if source.startswith("http"):
+        url = source.rstrip("/") + "/" + src
+        result = subprocess.run(["curl", "-fsSL", "--max-time", "30", "-o", "/dev/null",
+                                 "-w", "%{size_download}", url], capture_output=True, text=True)
+        return int(result.stdout) if result.returncode == 0 else 0
+    path = Path(source).parent / src
+    return path.stat().st_size if path.exists() else 0
+
+
+def project_checks(page):
+    names = [card["name"].strip() for card in page.cards]
+    checks = [("project cards are in the planned order", names == [p[0] for p in PROJECTS])]
+    for card, (name, repo, facts) in zip(page.cards, PROJECTS):
+        text = " ".join(card["text"].split())
+        checks += [
+            (f"{name}: links to its GitHub repo", repo in card["links"]),
+            (f"{name}: has an image", card["images"] >= 1),
+            (f"{name}: lists tech tags", card["tags"] >= 2),
+            *[(f"{name}: states '{fact}'", fact in text) for fact in facts],
+        ]
+    return checks
+
+
+def image_checks(page, source):
+    sizes = {img.get("src", ""): image_size(source, img.get("src", "")) for img in page.images}
+    return [
+        (f"page has {EXPECTED_IMAGES} project images", len(page.images) == EXPECTED_IMAGES),
+        ("every image has alt text", all(img.get("alt", "").strip() for img in page.images)),
+        ("every image sets width and height (no layout jump)",
+         all(img.get("width") and img.get("height") for img in page.images)),
+        ("no image comes from assets/raw", not any("assets/raw" in src for src in sizes)),
+        ("every image file exists", all(sizes.values())),
+        (f"every image is under {MAX_IMAGE_BYTES // 1000} KB",
+         all(size < MAX_IMAGE_BYTES for size in sizes.values())),
+        (f"images total under {MAX_TOTAL_IMAGE_BYTES // 1000} KB",
+         sum(sizes.values()) < MAX_TOTAL_IMAGE_BYTES),
+    ]
+
+
+def run_checks(html, css, source):
     page = PageScanner()
     page.feed(html)
     text = " ".join(html.split())
@@ -126,12 +201,14 @@ def run_checks(html, css):
         *[(f"--{name} is readable on --bg (contrast >= {MIN_CONTRAST})", readable_on_background(css, name))
           for name in ("text", "muted", "accent")],
         ("CSS has a visible keyboard focus style", ":focus-visible" in css),
+        *project_checks(page),
+        *image_checks(page, source),
     ]
 
 
 def main():
     source = sys.argv[1] if len(sys.argv) > 1 else "index.html"
-    results = run_checks(load(source), load_css(source))
+    results = run_checks(load(source), load_css(source), source)
     for name, ok in results:
         print(f"{'PASS' if ok else 'FAIL'}  {name}")
     failed = sum(not ok for _, ok in results)

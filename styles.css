@@ -93,3 +93,84 @@ h2 {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   letter-spacing: -0.02em;
 }
+
+/* Project cards: one column on phones, image beside text from tablet width up. */
+.project {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  margin-top: 1.5rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+@media (min-width: 768px) {
+  .project {
+    grid-template-columns: 1.25fr 1fr;
+    align-items: center;
+  }
+}
+
+.project-media {
+  position: relative;
+}
+
+.project-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* A second screenshot overlaps the first. The padding keeps it inside the card. */
+.project-media.layered {
+  padding: 0 8% 14% 0;
+}
+
+.project-media .project-inset {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 60%);
+}
+
+.project-body p {
+  margin: 0 0 0.85rem;
+}
+
+h3 {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  letter-spacing: -0.01em;
+}
+
+.project-body .project-meta {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.project-highlight {
+  padding-left: 0.85rem;
+  border-left: 3px solid var(--accent);
+  font-weight: 600;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.tags li {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
