@@ -1,0 +1,7 @@
+# Original screenshots: one shows a local address and token. Only edited copies get published.
+assets/raw/
+
+# Local tool settings and macOS clutter
+.claude/
+.DS_Store
+__pycache__/
