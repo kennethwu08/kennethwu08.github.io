@@ -4,8 +4,8 @@ With no URL it checks the local file; with a URL it checks the live site.
 Uses only Python's standard library, so there is nothing to install.
 """
 
+import subprocess
 import sys
-import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -52,9 +52,13 @@ class PageScanner(HTMLParser):
 
 def load(source):
     if source.startswith("http"):
-        with urllib.request.urlopen(source, timeout=15) as r:
-            assert r.status == 200, f"{source} returned {r.status}"
-            return r.read().decode()
+        # curl, not urllib: python.org's macOS Python ships without HTTPS certificates.
+        # -f makes curl fail on 404/500, so a missing page fails the test.
+        result = subprocess.run(["curl", "-fsSL", "--max-time", "15", source],
+                                capture_output=True, text=True)
+        if result.returncode != 0:
+            sys.exit(f"FAIL  could not load {source}: {result.stderr.strip()}")
+        return result.stdout
     return Path(source).read_text()
 
 
