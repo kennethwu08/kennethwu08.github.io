@@ -5,7 +5,7 @@ Every slice follows this loop: write the test or checklist first → write the s
 
 🔍 = fresh-eyes review checkpoint (Phase 4).
 
-- [ ] **Slice 1: Hello, internet.** A bare `index.html` with the name (`<h1>`), the pitch, and working GitHub, LinkedIn and Email links, **deployed to the free subdomain**. This proves the whole pipeline (code → GitHub → live URL) on day one.
+- [x] **Slice 1: Hello, internet.** ✅ Live at https://kennethwu08.github.io (9/9 checks pass on the live site). A bare `index.html` with the name (`<h1>`), the pitch, and working GitHub, LinkedIn and Email links, **deployed to the free subdomain**. This proves the whole pipeline (code → GitHub → live URL) on day one.
 - [ ] **Slice 2: Dark theme and page layout.** `styles.css` with dark colours, the accent colour, fonts, and the empty section structure (Hero, Projects, About, How I built this, Contact). Responsive at 375, 768 and 1280 px.
 - [ ] **Slice 3: Projects.** Three project cards with real text, optimized images (Larpslator token blurred), tech tags and GitHub links. Cards stack on phones.
 - 🔍 **Review 1** (slices 1–3)
