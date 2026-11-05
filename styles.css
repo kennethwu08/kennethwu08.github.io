@@ -1,0 +1,95 @@
+/* All colours live here, so changing the theme means editing one block. */
+:root {
+  color-scheme: dark;
+  --bg: #0a0b10;
+  --surface: #14161f;
+  --border: #2a2e3d;
+  --text: #f1f3f9;
+  --muted: #a4abbd;
+  --accent: #4d9fff;
+  --page-padding: clamp(1.25rem, 5vw, 3rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Hero: fills most of the first screen and leaves room for the particle name. */
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80vh;
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: var(--page-padding);
+}
+
+h1 {
+  margin: 0;
+  /* clamp(smallest, grows with screen width, largest) replaces most phone/desktop breakpoints. */
+  font-size: clamp(3rem, 13vw, 8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.pitch {
+  max-width: 38rem;
+  margin: 1.25rem 0 2rem;
+  color: var(--muted);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+}
+
+.hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.button {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Content sections share one centred column. */
+section {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: var(--page-padding);
+}
+
+h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
