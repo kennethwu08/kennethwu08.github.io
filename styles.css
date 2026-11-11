@@ -1,4 +1,4 @@
-/* All colours live here, so changing the theme means editing one block. */
+/* Every colour lives here, so changing the theme means editing one block. */
 :root {
   color-scheme: dark;
   --bg: #0a0b10;
@@ -7,6 +7,7 @@
   --text: #f1f3f9;
   --muted: #a4abbd;
   --accent: #4d9fff;
+  --shadow: rgb(0 0 0 / 60%);
   --page-padding: clamp(1.25rem, 5vw, 3rem);
 }
 
@@ -14,17 +15,35 @@
   box-sizing: border-box;
 }
 
+/* clip, not hidden: it stops sideways scrolling without breaking sticky positioning later. */
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  scrollbar-color: var(--border) var(--bg);
+}
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+  caret-color: var(--accent);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 1.0625rem;
   line-height: 1.6;
 }
 
+/* Browser defaults the design would otherwise leave unstyled. */
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 a {
   color: var(--accent);
+  text-underline-offset: 0.2em;
 }
 
 :focus-visible {
@@ -33,15 +52,30 @@ a {
   border-radius: 4px;
 }
 
+/* One centred column for the hero and every section. */
+.hero,
+section {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: var(--page-padding);
+}
+
+/* Long words wrap instead of pushing the page sideways on narrow phones. */
+h1,
+h2,
+h3 {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
 /* Hero: fills most of the first screen and leaves room for the particle name. */
 .hero {
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-height: 80vh;
-  max-width: 70rem;
-  margin: 0 auto;
-  padding: var(--page-padding);
+  /* svh = height with the phone's address bar showing, so the hero doesn't jump while scrolling. */
+  min-height: 80svh;
 }
 
 h1 {
@@ -81,13 +115,6 @@ h1 {
   color: var(--accent);
 }
 
-/* Content sections share one centred column. */
-section {
-  max-width: 70rem;
-  margin: 0 auto;
-  padding: var(--page-padding);
-}
-
 h2 {
   margin: 0 0 1rem;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
@@ -107,13 +134,10 @@ h2 {
 
 @media (min-width: 768px) {
   .project {
-    grid-template-columns: 1.25fr 1fr;
+    /* minmax(0, …) lets a column shrink below its image's natural width. */
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     align-items: center;
   }
-}
-
-.project-media {
-  position: relative;
 }
 
 .project-media img {
@@ -124,17 +148,33 @@ h2 {
   border-radius: 10px;
 }
 
-/* A second screenshot overlaps the first. The padding keeps it inside the card. */
+/* Two screenshots stacked in one grid cell: the inset overlaps the main one's corner.
+   The cell grows to fit both, so the inset stays inside the card even if an image fails. */
 .project-media.layered {
-  padding: 0 8% 14% 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.project-media .project-inset {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+.layered > img {
+  grid-area: 1 / 1;
+}
+
+.layered > img:first-child {
+  width: 92%;
+  margin-bottom: 14%;
+}
+
+/* For a main screenshot whose important content runs close to its bottom edge. */
+.layered-low > img:first-child {
+  margin-bottom: 22%;
+}
+
+.layered > .project-inset {
+  align-self: end;
+  justify-self: end;
   width: 50%;
-  box-shadow: 0 8px 28px rgb(0 0 0 / 60%);
+  border: none;
+  box-shadow: 0 8px 28px var(--shadow);
 }
 
 .project-body p {
@@ -152,17 +192,17 @@ h3 {
   font-size: 0.9375rem;
 }
 
-.project-highlight {
-  padding-left: 0.85rem;
-  border-left: 3px solid var(--accent);
+.project-body .project-highlight {
+  font-size: 1.125rem;
   font-weight: 600;
+  line-height: 1.45;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
   padding: 0;
   list-style: none;
 }
@@ -173,4 +213,11 @@ h3 {
   border-radius: 999px;
   color: var(--muted);
   font-size: 0.8125rem;
+}
+
+/* The card's GitHub link: padded so it is easy to hit with a thumb. */
+.project-body > a {
+  display: inline-block;
+  padding-block: 0.6rem;
+  font-weight: 600;
 }
